@@ -26,7 +26,6 @@ static void GLAssertError(const char* funcName, const char* fileName, unsigned i
 		ASSERT(error == GL_NO_ERROR);
 	}
 }
-
 // END Error checking
 
 // BEGIN SHADER
@@ -114,7 +113,6 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 
 	return program;
 }
-
 // END SHADER
 
 int main()
@@ -124,6 +122,10 @@ int main()
 	{
 		return -1;
 	}
+
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	GLFWwindow* window = glfwCreateWindow(640, 480, "Hello World", nullptr, nullptr);
 	if (!window)
@@ -160,6 +162,11 @@ int main()
 		2,3,0
 	};
 
+	//Create vertex array
+	unsigned int vao;
+	GLCall(glGenVertexArrays(1, &vao));
+	GLCall(glBindVertexArray(vao));
+
 	unsigned int buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -170,9 +177,9 @@ int main()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo); 
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	//Defining position data layout
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);//(index, count, type, normalized?, size in bytes of the vertex, index of the type inside the vertex); 
+	//Defining position data layout (this also bind vao 0 to the current binded buffer);
+	GLCall(glEnableVertexAttribArray(0));
+	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));//(index, count, type, normalized?, size in bytes of the vertex, index of the type inside the vertex); 
 	//END defining position data layout
 
 	// Setup shader
@@ -187,12 +194,23 @@ int main()
 	GLCall(glUniform4f(uColorLocation, 0.0f, 1.0f, 0.0f, 1.0f));
 	//
 
+	//Unbind everything
+	GLCall(glBindVertexArray(0));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+	GLCall(glUseProgram(0));
+
+	//
 	//Application Loop
 	while (!glfwWindowShouldClose(window))
 	{
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		//Rendering
+		GLCall(glBindVertexArray(vao));
+		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+
+		GLCall(glUseProgram(shader));
+
 		GLCall(glDrawElements(GL_TRIANGLES, std::size(indices), GL_UNSIGNED_INT, nullptr));
 		//END Rendering
 
