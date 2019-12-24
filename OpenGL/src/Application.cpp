@@ -6,6 +6,30 @@
 #include <string>
 #include <sstream>
 
+// BEGIN Error checking
+#define ASSERT(x) if (!(x)) { __debugbreak(); }
+#define GLCall(f) \
+	GLClearError();\
+	f;\
+	GLAssertError(#f, __FILE__, __LINE__)
+
+static void GLClearError()
+{
+	while (glGetError() != GL_NO_ERROR) {};
+}
+
+static void GLAssertError(const char* funcName, const char* fileName, unsigned int lineNum)
+{
+	while (GLenum error = glGetError())
+	{
+		std::cout << "[OpenGL error]: " << std::hex << error << ", " << funcName << ", " << fileName << ":" << lineNum << std::endl;
+		ASSERT(error == GL_NO_ERROR);
+	}
+}
+
+// END Error checking
+
+// BEGIN SHADER
 struct ShaderProgramSource
 {
 	const std::string VertexSource;
@@ -91,6 +115,8 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 	return program;
 }
 
+// END SHADER
+
 int main()
 {
 	//Init the Window api, create windows + create context
@@ -107,6 +133,7 @@ int main()
 	}
 
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1);
 	//END
 
 	// Initialize GLEW
@@ -119,17 +146,29 @@ int main()
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
 	//Initialize the vertex buffer
-	float positions[6] =
+	float positions[8] =
 	{
 		-0.5f, -0.5f,
-		0.0f, 0.5f,
-		0.5f, -0.5f
+		0.5f, -0.5f,
+		0.5f, 0.5f,
+		-0.5f, 0.5f
 	};
 
-	GLuint buffer;
+	unsigned int indices[6] =
+	{
+		0,1,2,
+		2,3,0
+	};
+
+	unsigned int buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+
+	unsigned int ibo;
+	glGenBuffers(1, &ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo); 
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	//Defining position data layout
 	glEnableVertexAttribArray(0);
@@ -140,8 +179,13 @@ int main()
 	ShaderProgramSource shaderSrc = ParseShader("res/shaders/Basic.shader");
 	unsigned int shader = CreateShader(shaderSrc.VertexSource, shaderSrc.FragmentSource);
 	glUseProgram(shader);
-
 	//END
+
+	// Setting up uniforms (they work PER DRAW CALL)
+	unsigned int uColorLocation = glGetUniformLocation(shader, "u_Color");
+	ASSERT(uColorLocation != -1);
+	GLCall(glUniform4f(uColorLocation, 0.0f, 1.0f, 0.0f, 1.0f));
+	//
 
 	//Application Loop
 	while (!glfwWindowShouldClose(window))
@@ -149,7 +193,7 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		//Rendering
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		GLCall(glDrawElements(GL_TRIANGLES, std::size(indices), GL_UNSIGNED_INT, nullptr));
 		//END Rendering
 
 		glfwSwapBuffers(window);
@@ -158,7 +202,7 @@ int main()
 		glfwPollEvents();
 	}
 
-	glDeleteProgram(shader);
+	glDeleteProgram(shader); 
 
 	glfwTerminate();
 }
