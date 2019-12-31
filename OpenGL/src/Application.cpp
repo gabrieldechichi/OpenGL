@@ -7,6 +7,7 @@
 #include "VertexBufferLayout.h"
 #include "VertexArray.h"
 #include "IndexBuffer.h"
+#include "Texture.h"
 
 #include "Shader.h"
 
@@ -35,15 +36,15 @@ int main()
 
 	Renderer renderer;
 	renderer.Initialize();
-	
+	 
 	{
 		//Initialize the vertex buffer
-		float positions[8] =
+		float positions[16] =
 		{
-			-0.5f, -0.5f,
-			0.5f, -0.5f,
-			0.5f, 0.5f,
-			-0.5f, 0.5f
+			-0.5f, -0.5f, 0.0f, 0.0f,
+			0.5f, -0.5f, 1.0f, 0.0f,
+			0.5f, 0.5f, 1.0f, 1.0f,
+			-0.5f, 0.5f, 0.0f, 1.0f
 		};
 
 		unsigned int indices[6] =
@@ -55,17 +56,18 @@ int main()
 		VertexBuffer vertexBuffer(positions, sizeof(positions));
 		VertexBufferLayout vertexLayout;
 		vertexLayout.PushFloat(2);
+		vertexLayout.PushFloat(2); 
 		VertexArray vertexArray;
 		vertexArray.AddBuffer(vertexBuffer, vertexLayout);
 
 		IndexBuffer indexBuffer(indices, std::size(indices));
 
-		// Setup shader
 		Shader shader("res/shaders/Basic.shader");
-		//END
-
-		// Setting up uniforms (they work PER DRAW CALL)
 		shader.SetUniform4f("u_Color", 0.0f, 0.0f, 1.0f, 1.0f);
+
+		Texture tex("res/textures/cherno_logo.png");
+		tex.Bind();
+		shader.SetUniform1i("u_Texture", tex.GetBindedSlot());
 
 		//Unbind everything
 		vertexArray.Unbind();
