@@ -18,6 +18,8 @@
 #include "imgui/examples/imgui_impl_opengl3.h"
 #include "imgui/examples/imgui_impl_glfw.h"
 
+#include "tests/TestClearColor.h"
+
 int main()
 {
 	//Init the Window api, create windows + create context
@@ -32,7 +34,7 @@ int main()
 
 	const float WindowWidth = 640.0f;
 	const float WindowHeight = 480.0f;
-	GLFWwindow* window = glfwCreateWindow(WindowWidth, WindowHeight, "Hello World", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow((int) WindowWidth, (int) WindowHeight, "Hello World", nullptr, nullptr);
 	if (!window)
 	{
 		glfwTerminate();
@@ -95,6 +97,9 @@ int main()
 
 		glm::vec3 translation = glm::vec3(0, 0, 0);
 
+		test::TestMenu testMenu;
+		testMenu.RegisterTest<test::TestClearColor>("Clear Color");
+
 		//Application Loop
 		while (!glfwWindowShouldClose(window))
 		{
@@ -104,16 +109,20 @@ int main()
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
 			
-			ImGui::SliderFloat3("Model matrix", &translation.x, 0.0f, WindowWidth);
+			/*ImGui::SliderFloat3("Model matrix", &translation.x, 0.0f, WindowWidth);
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 			glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), translation);
 			glm::mat4 mvp = proj * view * model;
 
 			shader.Bind();
-			shader.SetUniformMat4f("u_MVP", mvp);
+			shader.SetUniformMat4f("u_MVP", mvp);*/
 
+			testMenu.OnUpdate(0.0f);
+			testMenu.OnRender();
+			
 			renderer.Draw(vertexArray, indexBuffer, shader);
 
+			testMenu.OnImGUIRender();
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
