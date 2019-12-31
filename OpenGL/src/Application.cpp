@@ -14,6 +14,10 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+#include "imgui/imgui.h"
+#include "imgui/examples/imgui_impl_opengl3.h"
+#include "imgui/examples/imgui_impl_glfw.h"
+
 int main()
 {
 	//Init the Window api, create windows + create context
@@ -41,15 +45,22 @@ int main()
 
 	Renderer renderer;
 	renderer.Initialize();
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init();
+	ImGui::StyleColorsDark();
 	 
 	{
 		//Initialize the vertex buffer
 		float positions[16] =
 		{
-			WindowWidth*0.25f, WindowHeight*0.25f, 0.0f, 0.0f,
-			WindowWidth*0.75f, WindowHeight*0.25f, 1.0f, 0.0f,
-			WindowWidth*0.75f, WindowHeight*0.75f, 1.0f, 1.0f,
-			WindowWidth*0.25f, WindowHeight*0.75f, 0.0f, 1.0f
+			-WindowWidth*0.25f, -WindowHeight*0.25f, 0.0f, 0.0f,
+			WindowWidth*0.25f, -WindowHeight*0.25f, 1.0f, 0.0f,
+			WindowWidth*0.25f, WindowHeight*0.25f, 1.0f, 1.0f,
+			-WindowWidth*0.25f, WindowHeight*0.25f, 0.0f, 1.0f
 		};
 
 		unsigned int indices[6] =
@@ -71,12 +82,7 @@ int main()
 		shader.SetUniform4f("u_Color", 0.0f, 0.0f, 1.0f, 1.0f);
 
 		glm::mat4 proj = glm::ortho(0.0f, WindowWidth, 0.0f, WindowHeight);
-		glm::mat4 view = glm::translate(glm::identity<glm::mat4>(), glm::vec3(-100, 0, 0));
-		glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(0, 100, 0));
-
-		glm::mat4 mvp = proj * view * model;
-
-		shader.SetUniformMat4f("u_MVP", mvp);
+		glm::mat4 view = glm::translate(glm::identity<glm::mat4>(), glm::vec3(0, 0, 0));
 
 		Texture tex("res/textures/cherno_logo.png");
 		tex.Bind();
@@ -87,11 +93,29 @@ int main()
 		indexBuffer.Unbind();
 		shader.Unbind();
 
+		glm::vec3 translation = glm::vec3(0, 0, 0);
+
 		//Application Loop
 		while (!glfwWindowShouldClose(window))
 		{
 			renderer.Clear();
+
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+			
+			ImGui::SliderFloat3("Model matrix", &translation.x, 0.0f, WindowWidth);
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), translation);
+			glm::mat4 mvp = proj * view * model;
+
+			shader.Bind();
+			shader.SetUniformMat4f("u_MVP", mvp);
+
 			renderer.Draw(vertexArray, indexBuffer, shader);
+
+			ImGui::Render();
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 			glfwSwapBuffers(window);
 
@@ -99,6 +123,9 @@ int main()
 			glfwPollEvents();
 		}
 	}
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui::DestroyContext();
 
 	glfwTerminate();
 }
