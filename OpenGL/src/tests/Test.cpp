@@ -12,11 +12,11 @@ namespace test
 		}
 	}
 
-	void TestMenu::OnRender()
+	void TestMenu::OnRender(const Renderer& renderer)
 	{
 		if (CurrentTest)
 		{
-			CurrentTest->OnRender();
+			CurrentTest->OnRender(renderer);
 		}
 	}
 

@@ -15,9 +15,9 @@ namespace test
 		GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
 	}
 
-	void TestClearColor::OnRender()
+	void TestClearColor::OnRender(const Renderer& renderer)
 	{
-		Test::OnRender();
+		Test::OnRender(renderer);
 		GLCall(glClearColor(ClearColor[0], ClearColor[1], ClearColor[2], ClearColor[3]));
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 	}

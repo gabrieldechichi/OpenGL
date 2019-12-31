@@ -10,7 +10,7 @@ namespace test
 		TestClearColor();
 		~TestClearColor();
 
-		void OnRender() override;
+		void OnRender(const Renderer& renderer) override;
 		void OnImGUIRender() override;
 
 	private:

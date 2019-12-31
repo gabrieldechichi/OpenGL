@@ -5,6 +5,8 @@
 #include <memory>
 #include <string>
 
+class Renderer;
+
 namespace test
 {
 	class Test
@@ -14,7 +16,7 @@ namespace test
 		virtual ~Test() {}
 
 		virtual void OnUpdate(float deltaTime) {}
-		virtual void OnRender() {}
+		virtual void OnRender(const Renderer& renderer) {}
 		virtual void OnImGUIRender() {}
 	};
 
@@ -22,7 +24,7 @@ namespace test
 	{
 	public:
 		void OnUpdate(float deltaTime) override;
-		void OnRender() override;
+		void OnRender(const Renderer& renderer) override;
 		void OnImGUIRender() override;
 
 	private:
@@ -33,7 +35,7 @@ namespace test
 		template<typename T>
 		void RegisterTest(const std::string& testName)
 		{
-			AllTests.emplace(testName, []() { return std::make_shared<T>(); });
+			AllTests.emplace(testName, []	() { return std::make_shared<T>(); });
 		}
 	};
 }
