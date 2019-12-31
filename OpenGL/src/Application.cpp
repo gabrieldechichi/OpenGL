@@ -11,6 +11,9 @@
 
 #include "Shader.h"
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
 int main()
 {
 	//Init the Window api, create windows + create context
@@ -23,7 +26,9 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(640, 480, "Hello World", nullptr, nullptr);
+	const float WindowWidth = 640.0f;
+	const float WindowHeight = 480.0f;
+	GLFWwindow* window = glfwCreateWindow(WindowWidth, WindowHeight, "Hello World", nullptr, nullptr);
 	if (!window)
 	{
 		glfwTerminate();
@@ -41,10 +46,10 @@ int main()
 		//Initialize the vertex buffer
 		float positions[16] =
 		{
-			-0.5f, -0.5f, 0.0f, 0.0f,
-			0.5f, -0.5f, 1.0f, 0.0f,
-			0.5f, 0.5f, 1.0f, 1.0f,
-			-0.5f, 0.5f, 0.0f, 1.0f
+			WindowWidth*0.25f, WindowHeight*0.25f, 0.0f, 0.0f,
+			WindowWidth*0.75f, WindowHeight*0.25f, 1.0f, 0.0f,
+			WindowWidth*0.75f, WindowHeight*0.75f, 1.0f, 1.0f,
+			WindowWidth*0.25f, WindowHeight*0.75f, 0.0f, 1.0f
 		};
 
 		unsigned int indices[6] =
@@ -64,6 +69,14 @@ int main()
 
 		Shader shader("res/shaders/Basic.shader");
 		shader.SetUniform4f("u_Color", 0.0f, 0.0f, 1.0f, 1.0f);
+
+		glm::mat4 proj = glm::ortho(0.0f, WindowWidth, 0.0f, WindowHeight);
+		glm::mat4 view = glm::translate(glm::identity<glm::mat4>(), glm::vec3(-100, 0, 0));
+		glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(0, 100, 0));
+
+		glm::mat4 mvp = proj * view * model;
+
+		shader.SetUniformMat4f("u_MVP", mvp);
 
 		Texture tex("res/textures/cherno_logo.png");
 		tex.Bind();

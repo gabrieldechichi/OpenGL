@@ -2,7 +2,7 @@
 #include "Renderer.h"
 #include "GL/glew.h"
 
-#include "vendor/stb_image/stb_image.h"
+#include "stb_image/stb_image.h"
 
 Texture::Texture(const std::string& path)
 	: RendererId(0), FilePath(path), BindedSlot(0), LocalBuffer(nullptr)

@@ -15,6 +15,11 @@ bool Renderer::Initialize()
 		return false;
 	}
 	std::cout << glGetString(GL_VERSION) << std::endl;
+
+	GLCall(glEnable(GL_BLEND));
+	//source (output of fragment shader). target (the existing buffer)
+	//default for source is 1, target is 0
+	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 	return true;
 }
 
